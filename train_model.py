@@ -25,12 +25,6 @@ def train_model(func_type, x_tr, y_tr):
     #  ->   k-fold CV information
     n, k = x_tr.shape[1], 5
     val_size = n // k
-    # ->    Partition Data for k-fold CV
-    cv_indices, train_indices = [], []
-    for i in range(k):
-        # Find indices to separate CV and Training sets
-        cv_indices.append((i * val_size, (i + 1) * val_size))  # (start,end)
-        train_indices.append((0, i * val_size, (i + 1) * val_size, n))  # (start1, end1, start2, end2)
 
     # 1) Use k-CV to find appropriate lambda for the regularizer
     best_lambda = [0, float("inf")]  # (lambda, E_cv)
@@ -40,9 +34,9 @@ def train_model(func_type, x_tr, y_tr):
         e_cv = 0
         for i in range(k):
             # Separate CV and Training sets
-            x_cv, y_cv = x_tr[:, cv_indices[i][0]:cv_indices[i][0]], y_tr[:, cv_indices[i][0]:cv_indices[i][0]]
-            x_train = np.column_stack((x_tr[:, train_indices[i][0]:train_indices[i][1]], x_tr[:, train_indices[i][2]:train_indices[i][3]]))
-            y_train = np.column_stack((y_tr[:, train_indices[i][0]:train_indices[i][1]], y_tr[:, train_indices[i][2]:train_indices[i][3]]))
+            start, end = i * val_size, (i + 1) * val_size
+            x_cv, y_cv = x_tr[:, start:end], y_tr[:, start:end]
+            x_train, y_train = np.column_stack((x_tr[:, 0:start], x_tr[:, end:n])), np.column_stack((y_tr[:, 0:start], y_tr[:, end:n]))
 
             if func_type is "ridge":
                 # Matrix computation
